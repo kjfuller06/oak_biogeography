@@ -33,6 +33,30 @@ new = new %>%
 
 
 # BISON data
-nom = c("Quercus chapmanii", "Quercus geminata", "Quercus hemisphaerica", "Quercus margaretta", "Quercus margarettae", "Quercus margarettiae", "Quercus michauxii", "Quercus phellos", "Quercus shumardii", "Quercus stellata", "Quercus velutina", "Quercus virginiana")
+nom = c("Quercus_chapmanii", "Quercus_geminata", "Quercus_hemisphaerica", "Quercus_margaretta", "Quercus_margarettae_1", "Quercus_margarettiae_1", "Quercus_michauxii_1", "Quercus_michauxii_2", "Quercus_michauxii_3", "Quercus_phellos_1", "Quercus_shumardii_1", "Quercus_stellata_1", "Quercus_stellata_2", "Quercus_stellata_3", "Quercus_velutina_1", "Quercus_velutina_2", "Quercus_velutina_3", "Quercus_virginiana_1")
 chap = bison_solr(scientificName = as.character(nom[1]))
 chap
+
+chap = st_read(paste("data/BISON data/bison-", nom[1], ".shp", sep = ""))
+gem = st_read(paste("data/BISON data/bison-", nom[2], ".shp", sep = ""))
+hem = st_read(paste("data/BISON data/bison-", nom[3], ".shp", sep = ""))
+mar = st_read(paste("data/BISON data/bison-", nom[4], ".shp", sep = ""))
+mar2 = st_read(paste("data/BISON data/bison-", nom[5], ".shp", sep = ""))
+mar3 = st_read(paste("data/BISON data/bison-", nom[6], ".shp", sep = ""))
+mic = st_read(paste("data/BISON data/bison-", nom[7], ".shp", sep = ""))
+mic2 = st_read(paste("data/BISON data/bison-", nom[8], ".shp", sep = ""))
+mic3 = st_read(paste("data/BISON data/bison-", nom[9], ".shp", sep = ""))
+phe = st_read(paste("data/BISON data/bison-", nom[10], ".shp", sep = ""))
+shu = st_read(paste("data/BISON data/bison-", nom[11], ".shp", sep = ""))
+ste = st_read(paste("data/BISON data/bison-", nom[12], ".shp", sep = ""))
+ste2 = st_read(paste("data/BISON data/bison-", nom[13], ".shp", sep = ""))
+ste3 = st_read(paste("data/BISON data/bison-", nom[14], ".shp", sep = ""))
+vel = st_read(paste("data/BISON data/bison-", nom[15], ".shp", sep = ""))
+vel2 = st_read(paste("data/BISON data/bison-", nom[16], ".shp", sep = ""))
+vel3 = st_read(paste("data/BISON data/bison-", nom[17], ".shp", sep = ""))
+vir = st_read(paste("data/BISON data/bison-", nom[18], ".shp", sep = ""))
+
+all = rbind(chap, gem, hem, mar, mar2, mar3, mic, mic2, mic3, phe, shu, ste, ste2, ste3, vel, vel2, vel3, vir)
+backup = all
+all = all %>% 
+  filter(eventDate != NaN)
