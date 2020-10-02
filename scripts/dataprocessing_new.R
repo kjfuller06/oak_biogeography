@@ -5,9 +5,10 @@ library(lubridate)
 library(rnaturalearth)
 library(tmap)
 library(rbison)
+library(gdalUtils)
 
 # load GBIF data
-new = read.table("data/GBIF data/GBIF_all.txt", fill = TRUE, header = TRUE, sep = "\t", colClasses = c(rep("NULL", 63), "factor", rep("NULL", 34), "character", rep("NULL", 33), rep("character", 3), rep("NULL", 68), rep("factor", 2), rep("NULL", 10), "factor", "NULL", rep("factor", 2), rep("NULL", 10), "factor", rep("NULL", 19)), row.names = NULL)
+GBIF = read.table("data/GBIF data/GBIF_all.txt", fill = TRUE, header = TRUE, sep = "\t", colClasses = c(rep("NULL", 63), "factor", rep("NULL", 34), "character", rep("NULL", 33), rep("character", 3), rep("NULL", 68), rep("factor", 2), rep("NULL", 10), "factor", "NULL", rep("factor", 2), rep("NULL", 10), "factor", rep("NULL", 19)), row.names = NULL)
 
 # keep = c("baseisOfRecord", 
 #          "eventDate", 
@@ -22,20 +23,22 @@ new = read.table("data/GBIF data/GBIF_all.txt", fill = TRUE, header = TRUE, sep 
 #          "species")
 
 # filter by various things
-new$eventDate = as.Date(new$eventDate)
-new$year = year(new$eventDate)
-new = new %>% 
+GBIF$eventDate = as.Date(GBIF$eventDate)
+GBIF$year = year(GBIF$eventDate)
+GBIF = GBIF %>% 
   filter(year > 1988)
 
-new$coordinateUncertaintyInMeters = as.numeric(new$coordinateUncertaintyInMeters)
-new = new %>% 
-  filter(coordinateUncertaintyInMeters <= 20000)
-
+GBIF$coordinateUncertaintyInMeters = as.numeric(GBIF$coordinateUncertaintyInMeters)
+GBIF = GBIF %>% 
+  filter(coordinateUncertaintyInMeters <= 20000 | is.na(coordinateUncertaintyInMeters) == TRUE & hasCoordinate == "true" & hasGeospatialIssues != "true")
+GBIF$species[GBIF$species == "Quercus margaretta"] = "Quercus margarettae"
+GBIF = GBIF %>% 
+  st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326)
 
 # BISON data
 nom = c("Quercus_chapmanii", "Quercus_geminata", "Quercus_hemisphaerica", "Quercus_margaretta", "Quercus_margarettae_1", "Quercus_margarettiae_1", "Quercus_michauxii_1", "Quercus_michauxii_2", "Quercus_michauxii_3", "Quercus_phellos_1", "Quercus_shumardii_1", "Quercus_stellata_1", "Quercus_stellata_2", "Quercus_stellata_3", "Quercus_velutina_1", "Quercus_velutina_2", "Quercus_velutina_3", "Quercus_virginiana_1")
-chap = bison_solr(scientificName = as.character(nom[1]))
-chap
+# chap = bison_solr(scientificName = as.character(nom[1]))
+# chap
 
 chap = st_read(paste("data/BISON data/bison-", nom[1], ".shp", sep = ""))
 gem = st_read(paste("data/BISON data/bison-", nom[2], ".shp", sep = ""))
@@ -57,6 +60,40 @@ vel3 = st_read(paste("data/BISON data/bison-", nom[17], ".shp", sep = ""))
 vir = st_read(paste("data/BISON data/bison-", nom[18], ".shp", sep = ""))
 
 all = rbind(chap, gem, hem, mar, mar2, mar3, mic, mic2, mic3, phe, shu, ste, ste2, ste3, vel, vel2, vel3, vir)
-backup = all
-all = all %>% 
-  filter(eventDate != NaN)
+BISON = all
+BISON = BISON %>% 
+  filter(is.na(year) == FALSE) %>% 
+  dplyr::select(
+    "year",
+    "ITISsciNme",
+    "coordUncM",
+    "geometry")
+BISON$year = as.numeric(BISON$year)
+BISON = BISON %>% 
+  filter(year > 1988 & year < 2021)
+BISON$ITISsciNme = as.factor(BISON$ITISsciNme)
+BISON = BISON %>% 
+  filter(ITISsciNme != "Quercus michauxii;Quercus montana")
+BISON$coordUncM = substr(BISON$coordUncM, 1, nchar(BISON$coordUncM)-1)
+BISON$coordUncM = as.numeric(BISON$coordUncM)
+BISON = BISON %>% 
+  filter(coordUncM < 20000 | is.na(coordUncM) == TRUE) %>% 
+  st_transform(4326)
+
+# reduce df's down for joining
+BISON = BISON %>% 
+  dplyr::select("ITISsciNme",
+                "geometry")
+names(BISON)[1] = "species"
+GBIF = GBIF %>% 
+  dplyr::select("species",
+                "geometry")
+BISON$source = "BISON"
+GBIF$source = "GBIF"
+
+# join datasets
+all = rbind(BISON, GBIF)
+
+# what I'd like to do now is digitize the county records from BONAP and use these to constrain the species occurrence records from FIA, GBIF and BISON
+
+# write species layers to disk
