@@ -3,9 +3,16 @@ library(tidyverse)
 library(raster)
 library(lubridate)
 library(rnaturalearth)
+library(rnaturalearthdata)
+library(USAboundaries)
+library(devtools)
+# devtools::install_github("ropensci/USAboundariesData")
+library(USAboundariesData)
 library(tmap)
 library(rbison)
 library(gdalUtils)
+library(CoordinateCleaner)
+library(png)
 
 # load GBIF data
 GBIF = read.table("data/GBIF data/GBIF_all.txt", fill = TRUE, header = TRUE, sep = "\t", colClasses = c(rep("NULL", 63), "factor", rep("NULL", 34), "character", rep("NULL", 33), rep("character", 3), rep("NULL", 68), rep("factor", 2), rep("NULL", 10), "factor", "NULL", rep("factor", 2), rep("NULL", 10), "factor", rep("NULL", 19)), row.names = NULL)
@@ -43,7 +50,6 @@ nom = c("Quercus_chapmanii", "Quercus_geminata", "Quercus_hemisphaerica", "Querc
 chap = st_read(paste("data/BISON data/bison-", nom[1], ".shp", sep = ""))
 gem = st_read(paste("data/BISON data/bison-", nom[2], ".shp", sep = ""))
 hem = st_read(paste("data/BISON data/bison-", nom[3], ".shp", sep = ""))
-mar = st_read(paste("data/BISON data/bison-", nom[4], ".shp", sep = ""))
 mar2 = st_read(paste("data/BISON data/bison-", nom[5], ".shp", sep = ""))
 mar3 = st_read(paste("data/BISON data/bison-", nom[6], ".shp", sep = ""))
 mic = st_read(paste("data/BISON data/bison-", nom[7], ".shp", sep = ""))
@@ -59,10 +65,9 @@ vel2 = st_read(paste("data/BISON data/bison-", nom[16], ".shp", sep = ""))
 vel3 = st_read(paste("data/BISON data/bison-", nom[17], ".shp", sep = ""))
 vir = st_read(paste("data/BISON data/bison-", nom[18], ".shp", sep = ""))
 
-all = rbind(chap, gem, hem, mar, mar2, mar3, mic, mic2, mic3, phe, shu, ste, ste2, ste3, vel, vel2, vel3, vir)
-BISON = all
-BISON = BISON %>% 
-  filter(is.na(year) == FALSE) %>% 
+all = rbind(chap, gem, hem, mar2, mar3, mic, mic2, mic3, phe, shu, ste, ste2, ste3, vel, vel2, vel3, vir)
+BISON = all %>% 
+  filter(is.na(year) == FALSE & ITISsciNme != "Quercus michauxii;Quercus montana") %>% 
   dplyr::select(
     "year",
     "ITISsciNme",
@@ -72,8 +77,6 @@ BISON$year = as.numeric(BISON$year)
 BISON = BISON %>% 
   filter(year > 1988 & year < 2021)
 BISON$ITISsciNme = as.factor(BISON$ITISsciNme)
-BISON = BISON %>% 
-  filter(ITISsciNme != "Quercus michauxii;Quercus montana")
 BISON$coordUncM = substr(BISON$coordUncM, 1, nchar(BISON$coordUncM)-1)
 BISON$coordUncM = as.numeric(BISON$coordUncM)
 BISON = BISON %>% 
@@ -94,6 +97,48 @@ GBIF$source = "GBIF"
 # join datasets
 all = rbind(BISON, GBIF)
 
+# convert back to df
+backup = all
+backup$lon = st_coordinates(backup)[,1]
+backup$lat = st_coordinates(backup)[,2]
+backup = st_set_geometry(backup, NULL)
+
+# use CoordinateCleaner to clean up erroneous records
+backup$ISO = "USA"
+backup = clean_coordinates(backup, 
+                           lon = "lon",
+                           lat = "lat",
+                           species = "species",
+                           countries = "ISO",
+                           country_ref = rnaturalearth:ne_countries(scale = 10),
+                           seas_ref = rnaturalearth::ne_download(scale = 10, 
+                                                                 type = 'land', 
+                                                                 category = 'physical'),
+                           seas_scale = 10,
+                           tests = c("capitals", 
+                                     "centroids", 
+                                     "equal", 
+                                     "gbif", 
+                                     "institutions",
+                                     "seas", 
+                                     "zeros"),
+                           centroids_detail = "both",
+                           verbose = TRUE)
+# remove all records with failed test results and remove test columns
+all = backup %>% 
+  filter(.equ == TRUE & .zer == TRUE & .cap == TRUE & .cen == TRUE & .sea == TRUE & .inst == TRUE & .summary == TRUE) %>% 
+  dplyr::select("species", 
+                "source",
+                "lon",
+                "lat")
+all = as.data.frame(all)
+
 # what I'd like to do now is digitize the county records from BONAP and use these to constrain the species occurrence records from FIA, GBIF and BISON
+# sp1 = readPNG('data/BONAP range maps/Quercus chapmanii.png', info = TRUE)
+# sp1 = raster('data/BONAP range maps/Quercus chapmanii.tif')
+# usa = getData(name = "GADM", country = "USA", level = 1, download = TRUE) %>% 
+#   st_as_sf()
+# usa2 = us_counties(map_date = NULL, resolution = "high", states = NULL)
 
 # write species layers to disk
+write.csv(all, "outputs/cleaned_GBIF_BISON_recordsV.1.csv", row.names = FALSE)
