@@ -103,6 +103,8 @@ backup$lon = st_coordinates(backup)[,1]
 backup$lat = st_coordinates(backup)[,2]
 backup = st_set_geometry(backup, NULL)
 
+# Need to load my own county centroid data because it isn't filtering BISON correctly. Can I also expand the range of the centroid capture?
+
 # use CoordinateCleaner to clean up erroneous records
 backup$ISO = "USA"
 backup = clean_coordinates(backup, 
