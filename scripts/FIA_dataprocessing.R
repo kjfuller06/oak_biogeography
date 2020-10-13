@@ -54,6 +54,17 @@ records = records %>%
            SAMP_METHOD_CD == 1 &
            SUBP_EXAMINE_CD == 4)
 
+
+# Need to load my own county centroid data because it isn't filtering BISON correctly. Can I also expand the range of the centroid capture?
+
+# counties <- st_read("data/county boundaries/acs_2012_2016_county_us_B27001.shp") %>% 
+#   st_centroid()
+# counties$lon = st_coordinates(counties)[,1]
+# counties$lat = st_coordinates(counties)[,2]
+# counties = st_set_geometry(counties, NULL)
+# ^ need to convert to crs = 4326 and apply the centroid points as the coordinates. Right now it doesn't make any sense.
+
+
 # use CoordinateCleaner to filter points by various tests
 records$ISO = "USA"
 records = clean_coordinates(records, 
@@ -65,6 +76,7 @@ records = clean_coordinates(records,
                            seas_ref = rnaturalearth::ne_download(scale = 10, 
                                                                  type = 'land', 
                                                                  category = 'physical'),
+                           centroids_ref = counties,
                            seas_scale = 10,
                            tests = c("capitals", 
                                      "centroids", 
