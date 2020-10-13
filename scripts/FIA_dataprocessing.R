@@ -3,6 +3,7 @@ library(sf)
 library(tidyverse)
 library(raster)
 library(rgeos)
+library(CoordinateCleaner)
 
 # load datasets
 plots = read.csv("data/FIA data/PLOT.csv", colClasses = c(rep(NA, 9), "NULL", "NULL", NA, NA, NA, rep("NULL", 5), NA, NA, NA, rep("NULL", 8), NA, rep("NULL", 9), NA, NA, "NULL", NA, rep("NULL", 28)))
@@ -52,8 +53,35 @@ records = records %>%
            (QA_STATUS == 1 | QA_STATUS == 7) &
            SAMP_METHOD_CD == 1 &
            SUBP_EXAMINE_CD == 4)
-# write selection to disk
-write.csv(records, "data/FIA data/FIA_selection_filtered.csv", row.names = FALSE)
 
 # use CoordinateCleaner to filter points by various tests
+records$ISO = "USA"
+records = clean_coordinates(records, 
+                           lon = "LON",
+                           lat = "LAT",
+                           species = "species",
+                           countries = "ISO",
+                           country_ref = rnaturalearth:ne_countries(scale = 10),
+                           seas_ref = rnaturalearth::ne_download(scale = 10, 
+                                                                 type = 'land', 
+                                                                 category = 'physical'),
+                           seas_scale = 10,
+                           tests = c("capitals", 
+                                     "centroids", 
+                                     "equal", 
+                                     "gbif", 
+                                     "institutions",
+                                     "seas", 
+                                     "zeros"),
+                           verbose = TRUE)
+# remove failed observations and test columns
+records = records %>% 
+  filter(.cap == TRUE & .sea == TRUE & .summary == TRUE) %>% 
+  dplyr::select(INVYR,
+                LAT,
+                LON,
+                species,
+                spp_shr)
 
+# write filtered selection to disk
+write.csv(records, "data/FIA data/FIA_selection_filtered.csv", row.names = FALSE)
