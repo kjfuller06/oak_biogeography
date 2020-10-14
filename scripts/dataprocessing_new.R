@@ -4,15 +4,9 @@ library(raster)
 library(lubridate)
 library(rnaturalearth)
 library(rnaturalearthdata)
-library(USAboundaries)
-library(devtools)
-# devtools::install_github("ropensci/USAboundariesData")
-library(USAboundariesData)
 library(tmap)
 library(rbison)
-library(gdalUtils)
 library(CoordinateCleaner)
-library(png)
 
 # load GBIF data
 GBIF = read.table("data/GBIF data/GBIF_all.txt", fill = TRUE, header = TRUE, sep = "\t", colClasses = c(rep("NULL", 63), "factor", rep("NULL", 34), "character", rep("NULL", 33), rep("character", 3), rep("NULL", 68), rep("factor", 2), rep("NULL", 10), "factor", "NULL", rep("factor", 2), rep("NULL", 10), "factor", rep("NULL", 19)), row.names = NULL)
@@ -67,15 +61,12 @@ vir = st_read(paste("data/BISON data/bison-", nom[18], ".shp", sep = ""))
 
 all = rbind(chap, gem, hem, mar2, mar3, mic, mic2, mic3, phe, shu, ste, ste2, ste3, vel, vel2, vel3, vir)
 BISON = all %>% 
-  filter(is.na(year) == FALSE & ITISsciNme != "Quercus michauxii;Quercus montana") %>% 
-  dplyr::select(
-    "year",
-    "ITISsciNme",
-    "coordUncM",
-    "geometry")
+  filter(is.na(year) == FALSE & ITISsciNme != "Quercus michauxii;Quercus montana")
 BISON$year = as.numeric(BISON$year)
+BISON$centroid = as.factor(BISON$centroid)
 BISON = BISON %>% 
-  filter(year > 1988 & year < 2021)
+  filter(year > 1988 & year < 2021) %>% 
+  filter(is.na(centroid) == TRUE)
 BISON$ITISsciNme = as.factor(BISON$ITISsciNme)
 BISON$coordUncM = substr(BISON$coordUncM, 1, nchar(BISON$coordUncM)-1)
 BISON$coordUncM = as.numeric(BISON$coordUncM)
@@ -102,8 +93,6 @@ backup = all
 backup$lon = st_coordinates(backup)[,1]
 backup$lat = st_coordinates(backup)[,2]
 backup = st_set_geometry(backup, NULL)
-
-# Need to load my own county centroid data because it isn't filtering BISON correctly. Can I also expand the range of the centroid capture?
 
 # use CoordinateCleaner to clean up erroneous records
 backup$ISO = "USA"
@@ -134,13 +123,6 @@ all = backup %>%
                 "lon",
                 "lat")
 all = as.data.frame(all)
-
-# what I'd like to do now is digitize the county records from BONAP and use these to constrain the species occurrence records from FIA, GBIF and BISON
-# sp1 = readPNG('data/BONAP range maps/Quercus chapmanii.png', info = TRUE)
-# sp1 = raster('data/BONAP range maps/Quercus chapmanii.tif')
-# usa = getData(name = "GADM", country = "USA", level = 1, download = TRUE) %>% 
-#   st_as_sf()
-# usa2 = us_counties(map_date = NULL, resolution = "high", states = NULL)
 
 # write species layers to disk
 write.csv(all, "outputs/cleaned_GBIF_BISON_recordsV.1.csv", row.names = FALSE)
