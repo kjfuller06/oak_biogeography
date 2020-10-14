@@ -59,3 +59,4 @@ all = st_set_geometry(all, NULL)
 # write to disk
 write.csv(all, "outputs/all_recordsV.1.csv", row.names = FALSE)
 write_sf(map, "outputs/all_recordsV.1.shp")
+write_sf(counties, "outputs/counties.shp")
