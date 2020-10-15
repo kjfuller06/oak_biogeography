@@ -11,23 +11,11 @@ library(CoordinateCleaner)
 # load GBIF data
 GBIF = read.table("data/GBIF data/GBIF_all.txt", fill = TRUE, header = TRUE, sep = "\t", colClasses = c(rep("NULL", 63), "factor", rep("NULL", 34), "character", rep("NULL", 33), rep("character", 3), rep("NULL", 68), rep("factor", 2), rep("NULL", 10), "factor", "NULL", rep("factor", 2), rep("NULL", 10), "factor", rep("NULL", 19)), row.names = NULL)
 
-# keep = c("baseisOfRecord", 
-#          "eventDate", 
-#          "decimalLatitude", 
-#          "decimalLongitude", 
-#          "coordinateUncertaintyinMeters",
-#          "taxonomicStatus",
-#          "nomenclaturalStatus",
-#          "issue",
-#          "hasCoordinate",
-#          "hasGeospatialIssue",
-#          "species")
-
 # filter by various things
 GBIF$eventDate = as.Date(GBIF$eventDate)
 GBIF$year = year(GBIF$eventDate)
 GBIF = GBIF %>% 
-  filter(year > 1988)
+  filter(year > 1989)
 
 GBIF$coordinateUncertaintyInMeters = as.numeric(GBIF$coordinateUncertaintyInMeters)
 GBIF = GBIF %>% 
@@ -65,7 +53,7 @@ BISON = all %>%
 BISON$year = as.numeric(BISON$year)
 BISON$centroid = as.factor(BISON$centroid)
 BISON = BISON %>% 
-  filter(year > 1988 & year < 2021) %>% 
+  filter(year > 1989 & year < 2020) %>% 
   filter(is.na(centroid) == TRUE)
 BISON$ITISsciNme = as.factor(BISON$ITISsciNme)
 BISON$coordUncM = substr(BISON$coordUncM, 1, nchar(BISON$coordUncM)-1)

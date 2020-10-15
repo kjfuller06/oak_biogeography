@@ -8,14 +8,7 @@ library(CoordinateCleaner)
 # load datasets
 plots = read.csv("data/FIA data/PLOT.csv", colClasses = c(rep(NA, 9), "NULL", "NULL", NA, NA, NA, rep("NULL", 5), NA, NA, NA, rep("NULL", 8), NA, rep("NULL", 9), NA, NA, "NULL", NA, rep("NULL", 28)))
 spp = read.csv("data/species_info.csv")
-records=read.csv("data/FIA data/TREE.csv", colClasses = c(rep(NA, 10), rep("NULL", 5), NA, rep("NULL", 191)))
-# keep only the species codes that exist for species of interest (Q. chapmanii is not listed in the FIA database)
-SPCDs=spp$FIA.SPCD[1:9]
-# filter FIA data by selected species codes
-records = records%>%
-  filter(SPCD%in%SPCDs)
-# write selection to disk
-write.csv(records, "data/FIA data/FIA_selection.csv", row.names = FALSE)
+records=read.csv("data/FIA data/FIA_selection.csv")
 
 # filter out any repeated measures trees, keeping only the most recent records
 previous = unique(records$PREV_TRE_CN)[-1]
@@ -47,8 +40,7 @@ records = records %>%
 # filter out the rest of the back data
 records$MEASYEAR = as.numeric(records$INVYR)
 records = records %>% 
-  filter(INVYR > 1988 &
-           INVYR < 2021 &
+  filter(INVYR > 1989 & INVYR < 2020 &
            INTENSITY != 3 &
            INTENSITY != 2 &
            (QA_STATUS == 1 | QA_STATUS == 7) &
@@ -77,7 +69,7 @@ records = clean_coordinates(records,
                            verbose = TRUE)
 # remove failed observations and test columns
 records = records %>% 
-  filter(.cap == TRUE & .sea == TRUE & .summary == TRUE) %>% 
+  filter(.equ == TRUE & .zer == TRUE & .cap == TRUE & .cen == TRUE & .sea == TRUE & .inst == TRUE & .summary == TRUE) %>% 
   dplyr::select(INVYR,
                 LAT,
                 LON,
