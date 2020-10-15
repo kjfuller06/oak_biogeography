@@ -47,7 +47,8 @@ records = records %>%
 # filter out the rest of the back data
 records$MEASYEAR = as.numeric(records$INVYR)
 records = records %>% 
-  filter(INVYR > 1989 &
+  filter(INVYR > 1988 &
+           INVYR < 2021 &
            INTENSITY != 3 &
            INTENSITY != 2 &
            (QA_STATUS == 1 | QA_STATUS == 7) &
@@ -65,7 +66,6 @@ records = clean_coordinates(records,
                            seas_ref = rnaturalearth::ne_download(scale = 10, 
                                                                  type = 'land', 
                                                                  category = 'physical'),
-                           centroids_ref = counties,
                            seas_scale = 10,
                            tests = c("capitals", 
                                      "centroids", 
