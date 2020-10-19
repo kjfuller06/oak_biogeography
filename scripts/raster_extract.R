@@ -66,3 +66,7 @@ st_geometry(all_nocoords) = NULL
 
 # write to disk
 write.csv(all_nocoords, "outputs/recordsV.1_extractedvaluesV.1.csv")
+
+# now extract each month's data as individual datasets
+# last, extract the same values using the county data
+# export mean, min, max, median, stdev, quantiles of 0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99
