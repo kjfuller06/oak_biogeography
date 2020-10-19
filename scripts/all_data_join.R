@@ -13,9 +13,8 @@ levels(FIA$species) = c("Quercus margarettiae",
                         "Quercus virginiana")
 FIA$source = "FIA"
 FIA = FIA %>% 
-  dplyr::select(-INVYR,
-                -spp_shr)
-names(FIA)[c(1:2)] = c("lat", "lon")
+  dplyr::select(-spp_shr)
+names(FIA)[c(1:3)] = c("year","lat", "lon")
 
 all = rbind(FIA, herb)
 
@@ -24,6 +23,10 @@ all = all %>%
   filter(lon < -50)
 # remove duplicates
 all = unique(all)
+
+# remove records from 2020 AGAIN
+all = all %>% 
+  filter(year != 2020)
 
 map = all %>% 
   st_as_sf(coords = c(lon = "lon",

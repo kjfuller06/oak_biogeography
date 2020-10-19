@@ -63,12 +63,14 @@ BISON = BISON %>%
   st_transform(4326)
 
 # reduce df's down for joining
-BISON = BISON %>% 
+BISON = BISON %>%
   dplyr::select("ITISsciNme",
+                "year",
                 "geometry")
 names(BISON)[1] = "species"
-GBIF = GBIF %>% 
+GBIF = GBIF %>%
   dplyr::select("species",
+                "year",
                 "geometry")
 BISON$source = "BISON"
 GBIF$source = "GBIF"
@@ -108,6 +110,7 @@ all = backup %>%
   filter(.equ == TRUE & .zer == TRUE & .cap == TRUE & .cen == TRUE & .sea == TRUE & .inst == TRUE & .summary == TRUE) %>% 
   dplyr::select("species", 
                 "source",
+                "year",
                 "lon",
                 "lat")
 all = as.data.frame(all)
