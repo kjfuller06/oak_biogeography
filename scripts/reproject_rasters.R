@@ -14,4 +14,4 @@ writeRaster(PET, 'data/CGIARCSI data/et0_yr/et0_yr_reprojected.tif')
 # resample NPN dataset and write to disk
 agdd = raster('data/NPN data/data.tif')
 agdd = resample(agdd, prsm_precip, method = 'ngb')
-writeRaster(agdd, 'data/NPN data/agdd_resprojected.tif')
+writeRaster(agdd, 'data/NPN data/agdd_reprojected.tif')
