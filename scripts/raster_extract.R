@@ -21,6 +21,7 @@ records = read_sf("outputs/all_recordsV.1_bonapcleaned.shp")
 #   httr::GET(url,httr::write_disk(paste('data/NPN data/agdd', i, '.tif', sep = "")))
 # }
 
+# occurrence records for annual data ####
 # load prism datasets
 prsm_precip = raster("data/PRISM data/ppt/PRISM_ppt_30yr_normal_4kmM2_annual_asc.asc")
 # res(prsm_precip)
@@ -67,7 +68,7 @@ st_geometry(all_nocoords) = NULL
 # write to disk
 write.csv(all_nocoords, "outputs/recordsV.1_extractedvalues_annual.csv")
 
-# now extract each month's data as individual datasets
+# occurrence records for monthly data ####
 for(i in sprintf('%0.2d', 1:12)){
   # load prism datasets
   prsm_precip = raster(paste("data/PRISM data/ppt/PRISM_ppt_30yr_normal_4kmM2_", i, "_asc.asc", sep = ""))
@@ -108,5 +109,42 @@ for(i in sprintf('%0.2d', 1:12)){
   write.csv(all_nocoords, paste("outputs/recordsV.1_extractedvalues_", i, ".csv", sep = ""))
 }
 
-# last, extract the same values using the county data
+# county records for annual data ####
+# load prism datasets
+prsm_precip = raster("data/PRISM data/ppt/PRISM_ppt_30yr_normal_4kmM2_annual_asc.asc")
+prsm_tmean = raster("data/PRISM data/tmean/PRISM_tmean_30yr_normal_4kmM2_annual_asc.asc")
+prsm_tmin = raster("data/PRISM data/tmin/PRISM_tmin_30yr_normal_4kmM2_annual_asc.asc")
+prsm_tmax = raster("data/PRISM data/tmax/PRISM_tmax_30yr_normal_4kmM2_annual_asc.asc")
+prsm_vpdmax = raster("data/PRISM data/vpdmax/PRISM_vpdmax_30yr_normal_4kmM2_annual_asc.asc")
+# res(prsm_vpdmax)
+prsm_vpdmin = raster("data/PRISM data/vpdmin/PRISM_vpdmin_30yr_normal_4kmM2_annual_asc.asc")
+
+# load CSGIARCSI datasets
+aridity = raster('data/CGIARCSI data/ai_et0/ai_et0.tif')
+PET = raster('data/CGIARCSI data/et0_yr/et0_yr.tif')
+
+# load NPN datasets
+agdd = raster('data/NPN data/data.tif')
+
+# load county records
+x = "chap"
+counties = read_sf(paste("outputs/Q", x, "_bonap.shp", sep = ""))
+
+# mask rasters to extract data
+# bind env data to records
+prism_ppt = mask(prsm_precip, counties)
+prism_tavg = mask(prsm_tmean, counties)
+prism_tmin = mask(prsm_tmin, counties)
+prism_tmax = mask(prsm_tmax, counties)
+prism_vpdmin = mask(prsm_vpdmin, counties)
+prism_vpdmax = mask(prsm_vpdmax, counties)
+# the below layers do not mask properly
+# CGIARCSI_aridity = mask(aridity, counties)
+# CGIARCSI_PET = mask(PET, counties)
+# NPN_agdd = mask(agdd, counties)
+
+# county records for monthly data ####
+
+
 # export mean, min, max, median, stdev, quantiles of 0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99
+# thoughts!
