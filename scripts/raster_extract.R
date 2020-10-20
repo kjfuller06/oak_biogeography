@@ -1,3 +1,4 @@
+# note: redo analysis with resampled and reprojected raster layers
 library(sf)
 library(tidyverse)
 library(raster)
@@ -6,20 +7,10 @@ library(rnaturalearth)
 library(prism)
 library(rgdal)
 library(httr)
+library(tmap)
 
-# load dataset
+# load datasets
 records = read_sf("outputs/all_recordsV.1_bonapcleaned.shp")
-
-# yrs = seq(from = 1990, to = 2019, by = 1)
-# options(prism.path = "data/prism data/ppt")
-# get_prism_annual('ppt', years = yrs, keepZip = TRUE)
-# precip_stack = prism_stack(ls_prism_data()[c(1:30),1])
-# ^ this doesn't work
-
-# for(i in c(1:365)){
-#   url <- paste('https://geoserver.usanpn.org/geoserver/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=gdd:30yr_avg_agdd&SUBSET=elevation(', i ,')&format=geotiff', sep = "")
-#   httr::GET(url,httr::write_disk(paste('data/NPN data/agdd', i, '.tif', sep = "")))
-# }
 
 # occurrence records for annual data ####
 # load prism datasets
@@ -119,29 +110,38 @@ prsm_vpdmax = raster("data/PRISM data/vpdmax/PRISM_vpdmax_30yr_normal_4kmM2_annu
 # res(prsm_vpdmax)
 prsm_vpdmin = raster("data/PRISM data/vpdmin/PRISM_vpdmin_30yr_normal_4kmM2_annual_asc.asc")
 
-# load CSGIARCSI datasets
-aridity = raster('data/CGIARCSI data/ai_et0/ai_et0.tif')
-PET = raster('data/CGIARCSI data/et0_yr/et0_yr.tif')
+# reproject CSGIARCSI datasets
+aridity = raster('data/CGIARCSI data/ai_et0/at_et0_cropped.tif')
+PET = raster('data/CGIARCSI data/et0_yr/et0_yr_cropped.tif')
 
-# load NPN datasets
-agdd = raster('data/NPN data/data.tif')
+# resample NPN dataset and write to disk
+agdd = raster('data/NPN data/agdd_reprojected.tif')
 
 # load county records
 x = "chap"
-counties = read_sf(paste("outputs/Q", x, "_bonap.shp", sep = ""))
+counties = read_sf(paste("outputs/Q", x, "_bonap.shp", sep = "")) %>% 
+  st_transform(crs = 4269)
 
 # mask rasters to extract data
 # bind env data to records
-prism_ppt = mask(prsm_precip, counties)
-prism_tavg = mask(prsm_tmean, counties)
-prism_tmin = mask(prsm_tmin, counties)
-prism_tmax = mask(prsm_tmax, counties)
-prism_vpdmin = mask(prsm_vpdmin, counties)
-prism_vpdmax = mask(prsm_vpdmax, counties)
-# the below layers do not mask properly
-# CGIARCSI_aridity = mask(aridity, counties)
-# CGIARCSI_PET = mask(PET, counties)
-# NPN_agdd = mask(agdd, counties)
+prism_ppt = crop(prsm_precip, counties)
+prism_ppt = mask(prism_ppt, counties)
+prism_tavg = crop(prsm_tmean, counties)
+prism_tavg = mask(prism_tavg, counties)
+prism_tmin = crop(prsm_tmin, counties)
+prism_tmin = mask(prism_tmin, counties)
+prism_tmax = crop(prsm_tmax, counties)
+prism_tmax = mask(prism_tmax, counties)
+prism_vpdmin = crop(prsm_vpdmin, counties)
+prism_vpdmin = mask(prism_vpdmin, counties)
+prism_vpdmax = crop(prsm_vpdmax, counties)
+prism_vpdmax = mask(prism_vpdmax, counties)
+CGIARCSI_aridity = crop(aridity, counties)
+CGIARCSI_aridity = mask(CGIARCSI_aridity, counties)
+CGIARCSI_PET = crop(PET, counties)
+CGIARCSI_PET = mask(CGIARCSI_PET, counties)
+NPN_agdd = crop(agdd, counties)
+NPN_agdd = mask(NPN_agdd, counties)
 
 # county records for monthly data ####
 
