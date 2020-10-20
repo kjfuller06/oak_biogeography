@@ -1,4 +1,5 @@
-# note: redo analysis with resampled and reprojected raster layers
+# I've now completed the necessary raster processing for the annual data and masked the raster stack for analysis 3. Data will need to be exported.
+# processing still needs to be done for monthly datasets and analyses redone.
 library(sf)
 library(tidyverse)
 library(raster)
@@ -122,26 +123,32 @@ x = "chap"
 counties = read_sf(paste("outputs/Q", x, "_bonap.shp", sep = "")) %>% 
   st_transform(crs = 4269)
 
+# stack all rasters of interest
+all = raster::stack(prsm_precip,
+                    prsm_tmax,
+                    prsm_tmean,
+                    prsm_tmin,
+                    prsm_vpdmax,
+                    prsm_vpdmin,
+                    aridity,
+                    PET,
+                    agdd)
+
 # mask rasters to extract data
 # bind env data to records
-prism_ppt = crop(prsm_precip, counties)
-prism_ppt = mask(prism_ppt, counties)
-prism_tavg = crop(prsm_tmean, counties)
-prism_tavg = mask(prism_tavg, counties)
-prism_tmin = crop(prsm_tmin, counties)
-prism_tmin = mask(prism_tmin, counties)
-prism_tmax = crop(prsm_tmax, counties)
-prism_tmax = mask(prism_tmax, counties)
-prism_vpdmin = crop(prsm_vpdmin, counties)
-prism_vpdmin = mask(prism_vpdmin, counties)
-prism_vpdmax = crop(prsm_vpdmax, counties)
-prism_vpdmax = mask(prism_vpdmax, counties)
-CGIARCSI_aridity = crop(aridity, counties)
-CGIARCSI_aridity = mask(CGIARCSI_aridity, counties)
-CGIARCSI_PET = crop(PET, counties)
-CGIARCSI_PET = mask(CGIARCSI_PET, counties)
-NPN_agdd = crop(agdd, counties)
-NPN_agdd = mask(NPN_agdd, counties)
+all_mask = mask(all, counties)
+
+# chap = cbind(
+#   as.data.frame(prism_ppt),
+#   as.data.frame(prism_tavg),
+#   as.data.frame(prism_tmax),
+#   as.data.frame(prism_tmin),
+#   as.data.frame(prism_vpdmax),
+#   as.data.frame(prism_vpdmin),
+#   as.data.frame(CGIARCSI_aridity),
+#   as.data.frame(CGIARCSI_PET),
+#   as.data.frame(NPN_agdd)
+# )
 
 # county records for monthly data ####
 
