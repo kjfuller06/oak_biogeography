@@ -1,5 +1,3 @@
-# I've now completed the necessary raster processing for the annual data and masked the raster stack for analysis 3. Data will need to be exported.
-# processing still needs to be done for monthly datasets and analyses redone.
 library(sf)
 library(tidyverse)
 library(raster)
@@ -87,11 +85,12 @@ for(i in sprintf('%0.2d', 1:12)){
 
 # county records for annual data ####
 # load county records
-noms = unique(all_nocoords$species)
+noms = unique(records$species)
 spp = c("chap", "gem", "hem", "mar", "mic", "phe", "shu", "ste", "vel", "vir")
 
 counties = read_sf(paste("outputs/Q", spp[1], "_bonap.shp", sep = "")) %>% 
-  st_transform(crs = 4269)
+  st_transform(crs = 4269) %>% 
+  filter(rarity != "introduced")
 
 # stack all rasters of interest
 all = raster::stack(prsm_precip,
@@ -123,7 +122,8 @@ df$species = noms[1]
 
 for(i in spp[c(2:10)]){
   counties = read_sf(paste("outputs/Q", i, "_bonap.shp", sep = "")) %>% 
-    st_transform(crs = 4269)
+    st_transform(crs = 4269) %>% 
+    filter(rarity != "introduced")
   
   # stack all rasters of interest
   all = raster::stack(prsm_precip,
@@ -173,7 +173,8 @@ for(a in sprintf('%0.2d', 1:12)){
   
   # load first species county records
   counties = read_sf(paste("outputs/Q", spp[1], "_bonap.shp", sep = "")) %>% 
-    st_transform(crs = 4269)
+    st_transform(crs = 4269) %>% 
+    filter(rarity != "introduced")
   
   # stack all rasters of interest
   all = raster::stack(prsm_precip_m,
@@ -202,7 +203,8 @@ for(a in sprintf('%0.2d', 1:12)){
   # repeat for all remaining species
   for(i in spp[c(2:10)]){
     counties = read_sf(paste("outputs/Q", i, "_bonap.shp", sep = "")) %>% 
-      st_transform(crs = 4269)
+      st_transform(crs = 4269) %>% 
+      filter(rarity != "introduced")
     
     # mask rasters to extract data
     # bind env data to records
