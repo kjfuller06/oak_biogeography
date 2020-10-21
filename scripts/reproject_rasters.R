@@ -36,3 +36,13 @@ agdd = resample(agdd, prsm_precip, method = 'bilinear')
 writeRaster(aridity, 'data/CGIARCSI data/ai_et0/at_et0_cropped.tif', overwrite = TRUE)
 writeRaster(PET, 'data/CGIARCSI data/et0_yr/et0_yr_cropped.tif', overwrite = TRUE)
 writeRaster(agdd, 'data/NPN data/agdd_reprojected.tif', overwrite = TRUE)
+
+# same process for monthly PET
+for(i in sprintf('%0.2d', 1:12)){
+  PET1 = raster(paste('data/CGIARCSI data/et0_month/et0_', i, '.tif', sep = ""))
+  PET1 = crop(PET1, extent(prsm_precip))
+  PET1 = projectRaster(PET1, crs = "+proj=longlat +datum=NAD83 +no_defs", method = 'bilinear')
+  PET1 = aggregate(PET1, fact = 5)
+  PET1 <- resample(PET1, prsm_precip, method = 'bilinear')
+  writeRaster(PET1, paste('data/CGIARCSI data/et0_month/et0_', i, '_projected.tif', sep = ""), overwrite = TRUE)
+}
