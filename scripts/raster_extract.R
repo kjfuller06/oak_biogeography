@@ -16,27 +16,18 @@ records = read_sf("outputs/all_recordsV.1_bonapcleaned.shp")
 # occurrence records for annual data ####
 # load prism datasets
 prsm_precip = raster("data/PRISM data/ppt/PRISM_ppt_30yr_normal_4kmM2_annual_asc.asc")
-# res(prsm_precip)
 prsm_tmean = raster("data/PRISM data/tmean/PRISM_tmean_30yr_normal_4kmM2_annual_asc.asc")
-# res(prsm_tmean)
 prsm_tmin = raster("data/PRISM data/tmin/PRISM_tmin_30yr_normal_4kmM2_annual_asc.asc")
-# res(prsm_tmin)
 prsm_tmax = raster("data/PRISM data/tmax/PRISM_tmax_30yr_normal_4kmM2_annual_asc.asc")
-# res(prsm_tmax)
 prsm_vpdmax = raster("data/PRISM data/vpdmax/PRISM_vpdmax_30yr_normal_4kmM2_annual_asc.asc")
-# res(prsm_vpdmax)
 prsm_vpdmin = raster("data/PRISM data/vpdmin/PRISM_vpdmin_30yr_normal_4kmM2_annual_asc.asc")
-# res(prsm_vpdmin)
 
 # load CSGIARCSI datasets
-aridity = raster('data/CGIARCSI data/ai_et0/ai_et0.tif')
-# res(aridity)
-PET = raster('data/CGIARCSI data/et0_yr/et0_yr.tif')
-# res(PET)
+aridity = raster('data/CGIARCSI data/ai_et0/at_et0_cropped.tif')
+PET = raster('data/CGIARCSI data/et0_yr/et0_yr_cropped.tif')
 
 # load NPN datasets
-agdd = raster('data/NPN data/data.tif')
-# res(agdd)
+agdd = raster('data/NPN data/agdd_reprojected.tif')
 
 # bind env data to records
 dat = cbind(records, 
