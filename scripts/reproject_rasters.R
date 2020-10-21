@@ -30,11 +30,9 @@ aridity = aggregate(aridity, fact = 5)
 PET = aggregate(PET, fact = 5)
 aridity <- resample(aridity, prsm_precip, method = 'bilinear')
 PET <- resample(PET, prsm_precip, method = 'bilinear')
+agdd = resample(agdd, prsm_precip, method = 'bilinear')
 
 # write to disk
 writeRaster(aridity, 'data/CGIARCSI data/ai_et0/at_et0_cropped.tif', overwrite = TRUE)
 writeRaster(PET, 'data/CGIARCSI data/et0_yr/et0_yr_cropped.tif', overwrite = TRUE)
-
-# resample NPN dataset and write to disk
-agdd = resample(agdd, prsm_precip, method = 'bilinear')
 writeRaster(agdd, 'data/NPN data/agdd_reprojected.tif', overwrite = TRUE)
