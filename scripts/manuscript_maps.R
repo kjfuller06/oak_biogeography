@@ -53,35 +53,35 @@ marker = rasterGrob(marker)
 # species list- "Quercus chapmanii", "Quercus geminata",   "Quercus hemisphaerica", "Quercus margarettae", "Quercus phellos", "Quercus shumardii", "Quercus stellata", "Quercus velutina", "Quercus virginiana"
 # not used- "Quercus michauxii" 
 # set species
-spp1 = "Quercus margarettae"
+spp1 = unique(spp$species)[10]
 # set provenance coordinates
-b = 1.2
-x = st_coordinates(seeds[seeds$species == spp1,])[,1]
-y = st_coordinates(seeds[seeds$species == spp1,])[,2]
+b = 0.5
+source = data.frame(x = st_coordinates(seeds[seeds$species == spp1,])[,1],
+                    y = st_coordinates(seeds[seeds$species == spp1,])[,2])
 # define base map
 map1 = ggplot() + 
   geom_sf(data = world, col = 1, fill = "ivory") +
-  coord_sf(xlim = c(-125,-65), ylim = c(25,50)) +
+  coord_sf(xlim = c(-100,-70), ylim = c(25,46)) +
   geom_sf(data = spp[spp$species == spp1,], size = 1, col = "chartreuse4") +
-  coord_sf(xlim = c(-125,-65), ylim = c(25,50)) +
+  coord_sf(xlim = c(-100,-70), ylim = c(25,46)) +
   geom_sf(data = usa, col = 1, fill = NA) +
-  coord_sf(xlim = c(-125,-65), ylim = c(25,50)) +
-  ggrepel::geom_text_repel(data = cities, aes(x = long, y = lat, label = name), nudge_y = 1, nudge_x = 5)+
+  coord_sf(xlim = c(-100,-70), ylim = c(25,46)) +
   theme_bw() + 
+  geom_point(data = source, aes(x = x+0.5*b, y = y+0.5*b), pch = 25, size = 2, col = "darkgoldenrod1", fill = "darkgoldenrod1") +
   theme(panel.background = element_rect(fill = "lightblue"),
         axis.text = element_text(size = 11, colour = 1),
         panel.grid = element_line(colour = NA))+
   scale_x_continuous(breaks = c(35,55))+
   scale_y_continuous(breaks = c(-25, 2)) +
-  ggsn::scalebar(location = "bottomleft", x.min = -125, x.max = -65, y.min = 25, y.max = 50, dist = 1000, dist_unit = "km", transform = TRUE, model = "WGS84", st.dist = 0.02, st.size = 4)+
-  labs(x = NULL, y = NULL) +
-  ggtitle(spp1) 
+  ggsn::scalebar(location = "bottomright", x.min = -100, x.max = -70, y.min = 25, y.max = 46, dist = 250, dist_unit = "km", transform = TRUE, model = "WGS84", st.dist = 0.02, st.size = 0.25, border.size = 0.5, st.color = "lightblue2", box.fill = "gray65", box.color = "gray65")+
+  labs(x = NULL, y = NULL)
 
 # plot and add custom provenance marker
-tiff(file = paste("outputs/",spp1," distribution.tiff",sep=""), width =2000, height = 1000, units = "px", res = 200)
+tiff(file = paste("outputs/",spp1," distribution.tiff",sep=""), width =1150, height = 1000, units = "px", res = 300)
 map1 + annotation_custom(grob = marker,
-                       xmin = (x-b),
-                       xmax = (x+b),
-                       ymin = (y-0.5*b),
-                       ymax = (y+1.5*b))
+                       xmin = (cities$long-1.3),
+                       xmax = (cities$long+1.2),
+                       ymin = (cities$lat-0.3),
+                       ymax = (cities$lat+1.8))
 dev.off()
+
